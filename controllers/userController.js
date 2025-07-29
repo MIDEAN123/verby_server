@@ -53,20 +53,21 @@ export const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
       verificationToken,
-      verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Token expires in 24 hours
+      verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     };
 
     const user = await UserModel.create(userData);
 
     await user.save();
 
-    generateTokenAndSetCookie(res, user._id);
+    const token = generateTokenAndSetCookie(res, user._id);
 
     console.log("verificationToken:", verificationToken);
 
     res.status(201).json({
       success: true,
       message: "User registered successfully",
+      token, // Include token in response
       user: {
         ...user._doc,
         password: undefined,
@@ -77,6 +78,45 @@ export const registerUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      console.log("Invalid email or password")
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+   const token = generateTokenAndSetCookie(res, user._id);
+
+    console.log("verificationToken:", token);
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: `Login failed: ${error.message}`,
     });
   }
 };

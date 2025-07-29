@@ -5,6 +5,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/connectDB.js";
 import userRouter from "./routes/userRoutes.js";
+import tileRouter from "./routes/tileRoutes.js";
 // import userRouter from "./routes/userRoutes.js";
 // // import connectCloudinary from "./config/connectCloudinary.js";
 // import videoRouter from "./routes/videoRoutes.js";
@@ -27,6 +28,7 @@ const corsOptions = {
     const allowedOrigins = [
       process.env.CLIENT_URL,
       process.env.ADMIN_URL,
+     " http://localhost:49892/",
       "http://localhost:5173",
       "http://127.0.0.1:5173",
       "http://localhost:5174",
@@ -53,13 +55,13 @@ const corsOptions = {
 };
 
 // Middlewares
-app.use(cors(corsOptions));
+app.use(cors());
 
 app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/u", userRouter);
-// app.use("/api/video", videoRouter);
+app.use("/api/t/tiles", tileRouter);
 
 app.get("/", (req, res) => {
   res.status(200).json({
